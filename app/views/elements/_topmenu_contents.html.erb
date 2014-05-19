@@ -10,12 +10,17 @@
 %>
 <nav id="top-menu">
   <% if not user_signed_in? %>
-    <%= link_to "Concerto", main_app.root_url, :id => "top-menu-logobutton" %>
-    <p id="top-menu-logintext">
-      <%= link_to t('.sign_in'), main_app.new_user_session_path, :id => "login-dropdown" %> <%=t('.signin_login_spiel') %>
-      <% if can? :create, User %>
-        <%= t('.no_account') %> <%= link_to t('.sign_up'), main_app.new_user_registration_path %> <%= t('.now') %>
-      <% end %>
+    <% if ConcertoConfig[:cas_enabled] %>
+      <%= link_to "Log in", "/users/auth/cas" %>
+    <% else %>
+      <%= link_to "Concerto", main_app.root_url, :id => "top-menu-logobutton" %>
+      <p id="top-menu-logintext">
+        <%= link_to t('.sign_in'), main_app.new_user_session_path, :id => "login-dropdown" %> <%=t('.signin_login_spiel') %>
+        <% if can? :create, User %>
+          <%= t('.no_account') %> <%= link_to t('.sign_up'), main_app.new_user_registration_path %> <%= t('.now') %>
+        <% end %>
+    <% end %>  
+      
     </p>
   <% else %>
     <%= link_to main_app.dashboard_path, :id => "top-menu-logobutton", :class => "tooltip-basic full #{ current_page?(main_app.dashboard_path)? 'selected' : '' }" do %>

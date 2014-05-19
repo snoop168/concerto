@@ -250,6 +250,8 @@ DEPENDENCIES
   json (= 1.7.7)
   kaminari (= 0.14.1)
   mysql2
+  omniauth
+  omniauth-cas
   pg
   public_activity
   rails (~> 3.2.17)

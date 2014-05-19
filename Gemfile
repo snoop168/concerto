@@ -34,6 +34,12 @@ group :assets do
   gem 'uglifier', '>= 1.0.3'
 end
 
+group :cas do
+  gem "omniauth"
+  gem "omniauth-cas"
+end
+
+
 gem 'jquery-rails'
 gem 'turbolinks'
 gem 'jquery-timepicker-rails', '~> 1.3'
@@ -70,6 +76,12 @@ if system_has_mysql?
 else
   mysql_platforms = [:mswin]
 end
+if system_has_postgres?
+  postgres_platforms = Bundler::Dependency::PLATFORM_MAP.keys
+else
+  postgres_platforms = [:mswin]
+end
+
 if system_has_postgres?
   postgres_platforms = Bundler::Dependency::PLATFORM_MAP.keys
 else
