@@ -85,6 +85,7 @@ class User < ActiveRecord::Base
       # Add a new user via omniauth cas details
       user = User.new
       user.uid = cas_hash.uid
+      user.is_admin = false
       user.password, user.password_confirmation = Devise.friendly_token.first(8) 
 
       # Contact LDAP server for specific user details
@@ -109,6 +110,13 @@ class User < ActiveRecord::Base
         # Create Concerto Admin Group
         group = Group.where(:name => "Concerto Admins").first_or_create
         membership = Membership.create(:user_id => user.id, :group_id => group.id, :level => Membership::LEVELS[:leader])
+      end
+
+      if !ConcertoConfig["cas_first_user"]
+        ConcertoConfig.set("cas_first_user", "true")
+        user.is_admin = true
+        user.receive_moderation_notifications = true
+        user.confirmed_at = Date.today
       end
 
       # Attempt to save user, return nil if failed

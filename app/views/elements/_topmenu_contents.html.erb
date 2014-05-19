@@ -11,9 +11,9 @@
 <nav id="top-menu">
   <% if not user_signed_in? %>
     <% if ConcertoConfig[:cas_enabled] %>
-      <%= link_to "Log in", "/users/auth/cas" %>
-    <% else %>
-      <%= link_to "Concerto", main_app.root_url, :id => "top-menu-logobutton" %>
+        <%= link_to "Concerto", main_app.root_url, :id => "top-menu-logobutton" %>
+        <%= link_to "Log in", "/users/auth/cas", :id => "top-menu-logintext" %>
+      <% else %>
       <p id="top-menu-logintext">
         <%= link_to t('.sign_in'), main_app.new_user_session_path, :id => "login-dropdown" %> <%=t('.signin_login_spiel') %>
         <% if can? :create, User %>
