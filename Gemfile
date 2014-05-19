@@ -34,11 +34,9 @@ group :assets do
   gem 'uglifier', '>= 1.0.3'
 end
 
-group :cas do
-  gem "omniauth"
-  gem "omniauth-cas"
-end
-
+gem "omniauth"
+gem "omniauth-cas"
+gem "ruby-ldap"
 
 gem 'jquery-rails'
 gem 'turbolinks'
