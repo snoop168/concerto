@@ -1,7 +1,7 @@
 class ApplicationController < ActionController::Base
   protect_from_forgery
   before_filter :set_locale
-  before_filter :check_for_initial_install
+  # before_filter :check_for_initial_install
   before_filter :set_version
   before_filter :compute_pending_moderation
   around_filter :set_time_zone
