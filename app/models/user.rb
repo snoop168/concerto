@@ -6,13 +6,7 @@ class User < ActiveRecord::Base
   # Include default devise modules. Others available are:
   # :token_authenticatable, :encryptable, :confirmable,
   # :lockable, :timeoutable and :omniauthable, :trackable
-  
-  if ConcertoConfig[:cas_enabled]
-    modules = [:database_authenticatable, :rememberable, :validatable, :omniauthable]
-  else
-    modules = [:database_authenticatable, :recoverable, :registerable, :rememberable, :validatable]
-  end
-  
+  modules = [:database_authenticatable, :rememberable, :recoverable, :registerable, :validatable, :omniauthable]
   if ActiveRecord::Base.connection.table_exists? 'concerto_configs'
     modules << :confirmable if ConcertoConfig[:confirmable]
   end
@@ -81,19 +75,70 @@ class User < ActiveRecord::Base
     supporting_groups =  groups.select{|g| g.user_has_permissions?(self, :regular, type, permissions)}
     return supporting_groups
   end
-  
-  # Return user  (for CAS ONLY)
+
+  # Return user 
   def self.from_omniauth(cas_hash)
-    if user = User.find_by_email(cas_hash.uid + "@#{ConcertoConfig[:cas_domain]}")
+    if user = User.find_by_uid(cas_hash.uid)
+      # Check if user already exists
       return user
     else
+      # Add a new user via omniauth cas details
       user = User.new
-      user.first_name = cas_hash.uid
-      user.email = cas_hash.uid + "@#{ConcertoConfig[:cas_domain]}"
-      user.password = Devise.friendly_token.first(8)
-      user.save
-      return user
+      user.uid = cas_hash.uid
+      user.is_admin = false
+      user.password, user.password_confirmation = Devise.friendly_token.first(8) 
+
+      # Contact LDAP server for specific user details
+      user.user_details(cas_hash)
+
+      # Check if users table is empty
+      if !User.exists?
+        # First user is an admin
+        first_user_setup = true
+        user.is_admin = true
+
+        # Error reporting
+        user.receive_moderation_notifications = true
+        user.confirmed_at = Date.today
+
+        # Set concerto system config variables
+        if ConcertoConfig["setup_complete"] == false
+          ConcertoConfig.set("setup_complete", "true")
+          ConcertoConfig.set("send_errors", "true")
+        end
+        
+        # Create Concerto Admin Group
+        group = Group.where(:name => "Concerto Admins").first_or_create
+        membership = Membership.create(:user_id => user.id, :group_id => group.id, :level => Membership::LEVELS[:leader])
+      end
+
+      if !ConcertoConfig["cas_first_user"]
+        ConcertoConfig.set("cas_first_user", "true")
+        user.is_admin = true
+        user.receive_moderation_notifications = true
+        user.confirmed_at = Date.today
+      end
+
+      # Attempt to save user, return nil if failed
+      if user.save then return user else return nil end
     end
-  end  
+  end
+
+  def user_details(cas_hash)
+    require 'ldap'
+
+    # Bind to LDAP server
+    ldap_conn = LDAP::Conn.new(LDAP_ADDRESS, LDAP_PORT)
+    ldap_conn.set_option(LDAP::LDAP_OPT_PROTOCOL_VERSION, 3)
+    ldap_conn.bind
+
+    # Search for our user and obtain results
+    results = ldap_conn.search2(LDAP_USERNAME+"="+cas_hash.uid+","+LDAP_DN, LDAP::LDAP_SCOPE_SUBTREE, "(cn=*)")
+
+    # Set user details based on results
+    self.first_name = results.first['givenName'].first.split(' ').first
+    self.last_name = results.first['sn'].first
+    self.email = results.first['mailAlternateAddress'].first
+  end
 
 end

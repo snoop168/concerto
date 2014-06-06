@@ -52,6 +52,7 @@ if ActiveRecord::Base.connection.table_exists? 'concerto_configs'
     ConcertoConfig.make_concerto_config("keep_activity_log", "90", :value_type => "integer", :value_default => "90", :category => 'System', :description => 'Days to keep activity log for (where 0 is forever)') 
     
     # authentication
+    ConcertoConfig.make_concerto_config("cas_first_user", "false", :value_type => "boolean", :value_default => "false")
     ConcertoConfig.make_concerto_config("cas_enabled", "false", :value_type => "boolean", :value_default => "false", :category => 'Authentication', :seq_no => 1)
     ConcertoConfig.make_concerto_config("cas_domain", "domain.com", :value_type => "string", :value_default => "domain.com", :category => 'Authentication', :seq_no => 2)   
     ConcertoConfig.make_concerto_config("cas_url", "https://domain.com/cas", :value_type => "string", :value_default => "https://domain.com/cas", :category => 'Authentication', :seq_no => 3)  
